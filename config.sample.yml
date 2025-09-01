@@ -1,0 +1,5 @@
+today:
+  message: "An exciting opportunity lies ahead of you."
+
+log:
+  level: debug
