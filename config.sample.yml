@@ -3,3 +3,6 @@ today:
 
 log:
   level: debug
+
+window:
+  title: This is a sample title
