@@ -5,7 +5,7 @@ log:
   level: debug
 
 window:
-  title: This is a sample title
+  title: HTTP3 GUI Client in Go
 
 http:
   timeout_in_second: 10
