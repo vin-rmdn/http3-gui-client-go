@@ -1,10 +1,17 @@
 package main
 
 import (
+	"crypto/tls"
 	"log/slog"
+	"net/http"
 	"os"
+	"time"
 
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/quic-go/quic-go"
+	"github.com/quic-go/quic-go/http3"
+	"github.com/vin-rmdn/http3-gui-client-go/internal/application"
 	"github.com/vin-rmdn/http3-gui-client-go/internal/config"
 	"github.com/vin-rmdn/http3-gui-client-go/internal/logger"
 )
@@ -27,27 +34,38 @@ func main() {
 
 	log.Info("Hello, world!", slog.String("todays_message", conf.Today.Message))
 
+	const title = "HTTP3 GUI Client in Go"
+	glib.SetApplicationName(title) // Linux
+	glib.SetPrgname(title)         // Darwin
+
 	gtk.Init(nil)
 
-	window, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
+	gtkApp, err := gtk.ApplicationNew("dev.systrshr.http3_client", glib.APPLICATION_FLAGS_NONE)
 	if err != nil {
-		slog.Error("cannot create new window", slog.String("error", err.Error()))
+		slog.Error("cannot initialize application", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
-	window.SetTitle(conf.Window.Title)
-	window.Connect("destroy", func() {
-		gtk.MainQuit()
+	const signalActivate = "activate"
+	gtkApp.Connect(signalActivate, func() {
+		app := &application.Application{
+			Application: gtkApp,
+			HTTPClient: &http.Client{
+				Transport: &http3.Transport{
+					TLSClientConfig: &tls.Config{
+						NextProtos: []string{http3.NextProtoH3},
+					},
+					QUICConfig: &quic.Config{},
+				},
+				Timeout: 10 * time.Second,
+			},
+		}
+
+		// TODO: send an exit signal and tidy up if error is detected
+		app.Activate(conf)
 	})
 
-	topLabel, err := gtk.LabelNew("This is a label!")
-	if err != nil {
-		slog.Error("cannot create a new label")
-	}
+	exitCode := gtkApp.Run(os.Args)
 
-	window.Add(topLabel)
-
-	window.SetDefaultSize(800, 600)
-	window.ShowAll()
-
-	gtk.Main()
+	os.Exit(exitCode)
 }
