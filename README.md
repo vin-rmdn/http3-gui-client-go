@@ -1,6 +1,9 @@
 # HTTP3 GUI Client in Go
 A desktop client application for making HTTP3 requests with a graphical user interface, built with Go and GTK3.
 
+![image](docs/http3%20gui%20icon.png)
+(this image is only made within 10 minutes inside Photopea. As much as I love AI I love artists more, so please pay your local artists a visit!)
+
 ## Motive
 As of September 2025 there are _no_ HTTP GUI client for testing out HTTP3. I created a mock HTTP3 chat server to illustrate improvements in HTTP3, but so far I am blocked on the lack of GUI clients for macOS.
 
