@@ -62,7 +62,10 @@ func main() {
 		}
 
 		// TODO: send an exit signal and tidy up if error is detected
-		app.Activate(conf)
+		if err := app.Activate(conf); err != nil {
+			slog.Error("cannot activate application", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
 	})
 
 	exitCode := gtkApp.Run(os.Args)

@@ -2,10 +2,10 @@ package application
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
 
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/quic-go/quic-go/http3"
@@ -20,11 +20,10 @@ type Application struct {
 	HTTPClient         *http.Client
 }
 
-func (a *Application) Activate(conf *config.Configuration) {
+func (a *Application) Activate(conf *config.Configuration) error {
 	window, err := gtk.ApplicationWindowNew(a.Application)
 	if err != nil {
-		slog.Error("cannot initialize new application window", slog.String("error", err.Error()))
-		os.Exit(1)
+		return fmt.Errorf("cannot initialize new application window: %w", err)
 	}
 
 	window.SetTitle(conf.Window.Title)
@@ -52,6 +51,8 @@ func (a *Application) Activate(conf *config.Configuration) {
 	window.Add(verticalGrid)
 
 	window.ShowAll()
+
+	return nil
 }
 
 func (a *Application) createHTTPURLInput() gtk.IWidget {
