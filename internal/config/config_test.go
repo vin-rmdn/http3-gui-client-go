@@ -7,9 +7,13 @@ import (
 )
 
 func TestConfig(t *testing.T) {
-	emptyConfig := config.Configuration{}
+	emptyConfig := &config.Configuration{}
 
-	conf := config.Load("../config.sample.yml")
+	conf, err := config.Load("../../config.sample.yml")
+	if err != nil {
+		t.Errorf("expected no error, got one: %s", err.Error())
+	}
+
 	if conf == emptyConfig {
 		t.Error("expected populated config, got nothing")
 	}
