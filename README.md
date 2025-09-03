@@ -86,3 +86,6 @@ Error handling is implemented throughout the codebase
 
 ## Contributions
 Contributions are welcome. Please ensure that code follows the project's style and includes appropriate tests.
+
+## Acknowledgements
+Thank you to OpenAI for bringing me up to speed with the GTK library---the documentation could use some rework, and the Go adapter can explain features better.
