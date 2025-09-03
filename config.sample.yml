@@ -6,3 +6,6 @@ log:
 
 window:
   title: This is a sample title
+
+http:
+  timeout_in_second: 10

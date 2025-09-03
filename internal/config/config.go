@@ -19,6 +19,10 @@ type Configuration struct {
 	Window struct {
 		Title string
 	}
+
+	HTTP struct {
+		TimeoutInSecond int
+	}
 }
 
 func Load(file string) (*Configuration, error) {

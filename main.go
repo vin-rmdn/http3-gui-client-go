@@ -57,7 +57,7 @@ func main() {
 					},
 					QUICConfig: &quic.Config{},
 				},
-				Timeout: 10 * time.Second,
+				Timeout: time.Duration(conf.HTTP.TimeoutInSecond) * time.Second,
 			},
 		}
 
