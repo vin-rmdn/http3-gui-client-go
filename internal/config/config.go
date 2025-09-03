@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"log/slog"
 	"os"
 
@@ -25,19 +26,35 @@ type Configuration struct {
 	}
 }
 
-func Load(file string) (*Configuration, error) {
-	buffer, err := os.ReadFile(file)
-	if err != nil {
-		slog.Error("cannot read config.yml file")
-
-		return nil, err
-	}
+func Load(files ...string) (*Configuration, error) {
+	var errs error
+	var succeeds bool
 
 	config := &Configuration{}
-	if err := yaml.Unmarshal(buffer, config); err != nil {
-		slog.Error("cannot unmarshal config file")
 
-		return nil, err
+	for _, file := range files {
+		buffer, err := os.ReadFile(file)
+		if err != nil {
+			slog.Error("cannot read config.yml file")
+
+			errs = errors.Join(errs, err)
+			continue
+		}
+
+		if err := yaml.Unmarshal(buffer, config); err != nil {
+			slog.Error("cannot unmarshal config file")
+
+			errs = errors.Join(errs, err)
+			continue
+		}
+
+		succeeds = true
+
+		break
+	}
+
+	if !succeeds {
+		return nil, errs
 	}
 
 	return config, nil

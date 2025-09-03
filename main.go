@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/gotk3/gotk3/glib"
@@ -17,7 +18,18 @@ import (
 )
 
 func main() {
-	conf, err := config.Load("./config.yml")
+	// Patch for macOS bundling
+	execPath, err := os.Executable()
+	if err != nil {
+		slog.Error("cannot get executable path", slog.String("error", err.Error()))
+	}
+
+	execPath, _ = filepath.EvalSymlinks(execPath)
+
+	conf, err := config.Load(
+		"./config.yml",
+		filepath.Join(filepath.Dir(execPath), "..", "Resources", "config.yml"),
+	)
 	if err != nil {
 		slog.Error("cannot setup configuration", slog.String("error", err.Error()))
 
