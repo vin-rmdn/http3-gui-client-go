@@ -59,7 +59,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	app := &application.Application{
+	app := &application.View{
 		Application: gtkApp,
 	}
 	httpClient := &http.Client{

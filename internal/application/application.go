@@ -12,8 +12,7 @@ import (
 
 const signalDestroy = "destroy"
 
-// Application is a view struct for GTK. TODO: rename this to view
-type Application struct {
+type View struct {
 	*gtk.Application
 
 	Window             *gtk.ApplicationWindow
@@ -22,7 +21,7 @@ type Application struct {
 	SendRequestButton  *gtk.Button
 }
 
-func (a *Application) Activate(conf *config.Configuration) error {
+func (a *View) Activate(conf *config.Configuration) error {
 	window, err := gtk.ApplicationWindowNew(a.Application)
 	if err != nil {
 		return fmt.Errorf("cannot initialize new application window: %w", err)
@@ -59,7 +58,7 @@ func (a *Application) Activate(conf *config.Configuration) error {
 	return nil
 }
 
-func (a *Application) SetOnSendRequestFunction(callback func(*http.Request)) {
+func (a *View) SetOnSendRequestFunction(callback func(*http.Request)) {
 	const signalClicked = "clicked"
 	a.SendRequestButton.Connect(signalClicked, func() {
 		urlBuffer, _ := a.URLTextView.GetBuffer()
@@ -86,7 +85,7 @@ func (a *Application) SetOnSendRequestFunction(callback func(*http.Request)) {
 	})
 }
 
-func (a *Application) createHTTPURLInput() gtk.IWidget {
+func (a *View) createHTTPURLInput() gtk.IWidget {
 	box, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 
 	a.MethodComboBoxText, _ = gtk.ComboBoxTextNew()
@@ -121,6 +120,6 @@ func (a *Application) createHTTPURLInput() gtk.IWidget {
 	return box
 }
 
-func (a *Application) SetDestroyFunction(callback func()) {
+func (a *View) SetDestroyFunction(callback func()) {
 	a.Window.Connect(signalDestroy, callback)
 }

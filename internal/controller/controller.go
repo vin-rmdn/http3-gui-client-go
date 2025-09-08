@@ -11,10 +11,10 @@ import (
 
 type controller struct {
 	httpClient *http.Client
-	view       *application.Application
+	view       *application.View
 }
 
-func New(httpClient *http.Client, view *application.Application) controller {
+func New(httpClient *http.Client, view *application.View) controller {
 	c := controller{
 		httpClient: httpClient,
 		view:       view,
