@@ -3,21 +3,23 @@ package application
 import (
 	"context"
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 
 	"github.com/gotk3/gotk3/gtk"
-	"github.com/quic-go/quic-go/http3"
 	"github.com/vin-rmdn/http3-gui-client-go/internal/config"
 )
 
+const signalDestroy = "destroy"
+
+// Application is a view struct for GTK. TODO: rename this to view
 type Application struct {
 	*gtk.Application
 
+	Window             *gtk.ApplicationWindow
 	URLTextView        *gtk.TextView
 	MethodComboBoxText *gtk.ComboBoxText
-	HTTPClient         *http.Client
+	SendRequestButton  *gtk.Button
 }
 
 func (a *Application) Activate(conf *config.Configuration) error {
@@ -26,12 +28,12 @@ func (a *Application) Activate(conf *config.Configuration) error {
 		return fmt.Errorf("cannot initialize new application window: %w", err)
 	}
 
-	window.SetTitle(conf.Window.Title)
-	window.SetDefaultSize(800, 600)
+	a.Window = window
+	a.Window.SetTitle(conf.Window.Title)
+	a.Window.SetDefaultSize(800, 600)
 
-	window.Connect("destroy", func() {
-		a.HTTPClient.Transport.(*http3.Transport).Close()
-		gtk.MainQuit()
+	a.Window.ConnectAfter(signalDestroy, func() {
+		a.Quit()
 	})
 
 	verticalGrid, _ := gtk.GridNew()
@@ -41,12 +43,14 @@ func (a *Application) Activate(conf *config.Configuration) error {
 
 	verticalGrid.Add(a.createHTTPURLInput())
 
-	sendRequestButton, _ := gtk.ButtonNewWithLabel("Send request")
-	sendRequestButton.SetHExpand(false)
+	a.SendRequestButton, err = gtk.ButtonNewWithLabel("Send request")
+	if err != nil {
+		return fmt.Errorf("cannot create send request button: %w", err)
+	}
 
-	const signalClicked = "clicked"
-	sendRequestButton.Connect(signalClicked, a.sendHTTP())
-	verticalGrid.Add(sendRequestButton)
+	a.SendRequestButton.SetHExpand(false)
+
+	verticalGrid.Add(a.SendRequestButton)
 
 	window.Add(verticalGrid)
 
@@ -55,16 +59,49 @@ func (a *Application) Activate(conf *config.Configuration) error {
 	return nil
 }
 
+func (a *Application) SetOnSendRequestFunction(callback func(*http.Request)) {
+	const signalClicked = "clicked"
+	a.SendRequestButton.Connect(signalClicked, func() {
+		urlBuffer, _ := a.URLTextView.GetBuffer()
+		start, end := urlBuffer.GetBounds()
+
+		url, _ := urlBuffer.GetText(start, end, false)
+
+		method := a.MethodComboBoxText.GetActiveText()
+
+		slog.Debug(
+			"ready to trigger http request",
+			slog.String("url", url),
+			slog.String("method", method),
+		)
+
+		// TODO: support request body
+		request, err := http.NewRequestWithContext(context.Background(), method, url, http.NoBody)
+		if err != nil {
+			slog.Error("cannot create request", slog.String("error", err.Error()))
+			return
+		}
+
+		callback(request)
+	})
+}
+
 func (a *Application) createHTTPURLInput() gtk.IWidget {
 	box, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 
 	a.MethodComboBoxText, _ = gtk.ComboBoxTextNew()
 	a.MethodComboBoxText.SetHExpand(false)
 
-	// TODO: provide all methods
 	supportedHTTPMethods := []string{
 		http.MethodGet,
 		http.MethodPost,
+		http.MethodConnect,
+		http.MethodHead,
+		http.MethodPut,
+		http.MethodPatch,
+		http.MethodDelete,
+		http.MethodOptions,
+		http.MethodTrace,
 	}
 	for _, method := range supportedHTTPMethods {
 		a.MethodComboBoxText.AppendText(method)
@@ -84,52 +121,6 @@ func (a *Application) createHTTPURLInput() gtk.IWidget {
 	return box
 }
 
-// sendHTTP gets the appropriate value from the boxes and creates a HTTP connection.
-// TODO: extract this to its own package
-func (a *Application) sendHTTP() func() {
-	return func() {
-		urlBuffer, _ := a.URLTextView.GetBuffer()
-		start, end := urlBuffer.GetBounds()
-
-		url, _ := urlBuffer.GetText(start, end, false)
-
-		method := a.MethodComboBoxText.GetActiveText()
-
-		slog.Info(
-			"ready to trigger http request",
-			slog.String("url", url),
-			slog.String("method", method),
-		)
-
-		// TODO: support request body
-		req, err := http.NewRequestWithContext(context.Background(), method, url, http.NoBody)
-		if err != nil {
-			slog.Error("cannot create request", slog.String("error", err.Error()))
-			return
-		}
-
-		response, err := a.HTTPClient.Do(req)
-		if err != nil {
-			slog.Error("cannot execute http call", slog.String("error", err.Error()))
-			return
-		}
-
-		// response.Status
-		responseBody, err := io.ReadAll(response.Body)
-		if err != nil {
-			slog.Error("cannot decode response", slog.String("error", err.Error()))
-			return
-		}
-
-		defer func() {
-			_ = response.Body.Close()
-		}()
-
-		slog.Info(
-			"response received",
-			slog.String("status", response.Status),
-			slog.String("body", string(responseBody)),
-			slog.String("proto_version", response.Proto),
-		)
-	}
+func (a *Application) SetDestroyFunction(callback func()) {
+	a.Window.Connect(signalDestroy, callback)
 }

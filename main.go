@@ -14,6 +14,7 @@ import (
 	"github.com/quic-go/quic-go/http3"
 	"github.com/vin-rmdn/http3-gui-client-go/internal/application"
 	"github.com/vin-rmdn/http3-gui-client-go/internal/config"
+	"github.com/vin-rmdn/http3-gui-client-go/internal/controller"
 	"github.com/vin-rmdn/http3-gui-client-go/internal/logger"
 )
 
@@ -58,26 +59,29 @@ func main() {
 		os.Exit(1)
 	}
 
+	app := &application.Application{
+		Application: gtkApp,
+	}
+	httpClient := &http.Client{
+		Transport: &http3.Transport{
+			TLSClientConfig: &tls.Config{
+				NextProtos: []string{http3.NextProtoH3},
+			},
+			QUICConfig: &quic.Config{},
+		},
+		Timeout: time.Duration(conf.HTTP.TimeoutInSecond) * time.Second,
+	}
+
 	const signalActivate = "activate"
 	gtkApp.Connect(signalActivate, func() {
-		app := &application.Application{
-			Application: gtkApp,
-			HTTPClient: &http.Client{
-				Transport: &http3.Transport{
-					TLSClientConfig: &tls.Config{
-						NextProtos: []string{http3.NextProtoH3},
-					},
-					QUICConfig: &quic.Config{},
-				},
-				Timeout: time.Duration(conf.HTTP.TimeoutInSecond) * time.Second,
-			},
-		}
-
 		// TODO: send an exit signal and tidy up if error is detected
 		if err := app.Activate(conf); err != nil {
 			slog.Error("cannot activate application", slog.String("error", err.Error()))
 			os.Exit(1)
 		}
+
+		c := controller.New(httpClient, app)
+		_ = c
 	})
 
 	exitCode := gtkApp.Run(os.Args)
