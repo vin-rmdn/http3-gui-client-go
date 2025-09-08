@@ -1,5 +1,5 @@
 # HTTP3 GUI Client in Go
-A desktop client application for making HTTP3 requests with a graphical user interface, built with Go and GTK3.
+A desktop client application for making HTTP3 requests with a graphical user interface, built with Go and GTK4.
 
 ![image](docs/http3%20gui%20icon.png)
 (this image is only made within 10 minutes inside Photopea. As much as I love AI I love artists more, so please pay your local artists a visit!)
@@ -17,21 +17,21 @@ As of September 2025 there are _no_ HTTP GUI client for testing out HTTP3. I cre
 
 ## Prerequisites
 - Go 1.25+
-- GTK3 development libraries
+- GTK4 development libraries
 - Required Go packages (installed automatically via go.mod):
-    - github.com/gotk3/gotk3
+    - github.com/diamondburned/gotk4
     - github.com/quic-go/quic-go
     - gopkg.in/yaml.v3
 
-## Installing GTK3 development libraries
+## Installing GTK4 development libraries
 ### macOS
 ```sh
-brew install pkg-config gtk+3 adwaita-icon-theme
+brew install pkg-config gtk4 graphene gobject-introspection adwaita-icon-theme
 ```
 
 ### Ubuntu/Debian
 ```sh
-sudo apt-get install libgtk-3-dev
+sudo apt-get install libgtk-4-dev
 ```
 
 ## Configuration
@@ -91,4 +91,5 @@ Error handling is implemented throughout the codebase
 Contributions are welcome. Please ensure that code follows the project's style and includes appropriate tests.
 
 ## Acknowledgements
-Thank you to OpenAI for bringing me up to speed with the GTK library---the documentation could use some rework, and the Go adapter can explain features better.
+Thank you to OpenAI for bringing me up to speed with the GTK library---the documentation could use some rework~~, and the Go adapter can explain features better~~.
+*

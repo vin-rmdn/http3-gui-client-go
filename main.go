@@ -8,8 +8,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/gotk3/gotk3/glib"
-	"github.com/gotk3/gotk3/gtk"
+	"github.com/diamondburned/gotk4/pkg/gio/v2"
+	"github.com/diamondburned/gotk4/pkg/glib/v2"
+	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/vin-rmdn/http3-gui-client-go/internal/application"
@@ -51,9 +52,9 @@ func main() {
 	glib.SetApplicationName(title) // Linux
 	glib.SetPrgname(title)         // Darwin
 
-	gtk.Init(nil)
+	gtk.Init()
 
-	gtkApp, err := gtk.ApplicationNew("dev.systrshr.http3_client", glib.APPLICATION_FLAGS_NONE)
+	gtkApp := gtk.NewApplication("dev.systrshr.http3_client", gio.ApplicationFlagsNone)
 	if err != nil {
 		slog.Error("cannot initialize application", slog.String("error", err.Error()))
 		os.Exit(1)

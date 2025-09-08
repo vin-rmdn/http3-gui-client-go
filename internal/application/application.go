@@ -2,11 +2,10 @@ package application
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 
-	"github.com/gotk3/gotk3/gtk"
+	gtk "github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/vin-rmdn/http3-gui-client-go/internal/config"
 )
 
@@ -15,45 +14,41 @@ const signalDestroy = "destroy"
 type View struct {
 	*gtk.Application
 
-	Window             *gtk.ApplicationWindow
-	URLTextView        *gtk.TextView
-	MethodComboBoxText *gtk.ComboBoxText
-	SendRequestButton  *gtk.Button
+	Window            *gtk.ApplicationWindow
+	URLTextView       *gtk.TextView
+	MethodDropDown    *gtk.DropDown
+	MethodList        []string
+	SendRequestButton *gtk.Button
 }
 
 func (a *View) Activate(conf *config.Configuration) error {
-	window, err := gtk.ApplicationWindowNew(a.Application)
-	if err != nil {
-		return fmt.Errorf("cannot initialize new application window: %w", err)
-	}
+	// window, err := gtk.ApplicationWindowNew(a.Application)
+	window := gtk.NewApplicationWindow(a.Application)
 
 	a.Window = window
 	a.Window.SetTitle(conf.Window.Title)
 	a.Window.SetDefaultSize(800, 600)
 
 	a.Window.ConnectAfter(signalDestroy, func() {
-		a.Quit()
+		a.Application.Quit()
 	})
 
-	verticalGrid, _ := gtk.GridNew()
-	verticalGrid.SetOrientation(gtk.ORIENTATION_VERTICAL)
-	verticalGrid.SetBorderWidth(10)
+	verticalGrid := gtk.NewGrid()
+	verticalGrid.SetOrientation(gtk.OrientationVertical)
+	// verticalGrid.SetBorderWidth(10)
 	verticalGrid.SetRowSpacing(10)
 
-	verticalGrid.Add(a.createHTTPURLInput())
+	verticalGrid.Attach(a.createHTTPURLInput(), 0, 0, 1, 1)
 
-	a.SendRequestButton, err = gtk.ButtonNewWithLabel("Send request")
-	if err != nil {
-		return fmt.Errorf("cannot create send request button: %w", err)
-	}
-
+	a.SendRequestButton = gtk.NewButtonWithLabel("Send request")
 	a.SendRequestButton.SetHExpand(false)
 
-	verticalGrid.Add(a.SendRequestButton)
+	verticalGrid.Attach(a.SendRequestButton, 0, 1, 1, 1)
 
-	window.Add(verticalGrid)
+	window.SetChild(verticalGrid)
 
-	window.ShowAll()
+	// window.ShowAll()
+	window.SetVisible(true)
 
 	return nil
 }
@@ -61,12 +56,18 @@ func (a *View) Activate(conf *config.Configuration) error {
 func (a *View) SetOnSendRequestFunction(callback func(*http.Request)) {
 	const signalClicked = "clicked"
 	a.SendRequestButton.Connect(signalClicked, func() {
-		urlBuffer, _ := a.URLTextView.GetBuffer()
-		start, end := urlBuffer.GetBounds()
+		urlBuffer := a.URLTextView.Buffer()
+		start, end := urlBuffer.Bounds()
 
-		url, _ := urlBuffer.GetText(start, end, false)
+		url := urlBuffer.Text(start, end, false)
 
-		method := a.MethodComboBoxText.GetActiveText()
+		selectedIndex := a.MethodDropDown.Selected()
+		if selectedIndex == gtk.InvalidListPosition {
+			slog.Warn("dropdown does not have active item selected")
+			return
+		}
+
+		method := a.MethodList[selectedIndex]
 
 		slog.Debug(
 			"ready to trigger http request",
@@ -85,13 +86,10 @@ func (a *View) SetOnSendRequestFunction(callback func(*http.Request)) {
 	})
 }
 
-func (a *View) createHTTPURLInput() gtk.IWidget {
-	box, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+func (a *View) createHTTPURLInput() gtk.Widgetter {
+	box := gtk.NewBox(gtk.OrientationHorizontal, 0)
 
-	a.MethodComboBoxText, _ = gtk.ComboBoxTextNew()
-	a.MethodComboBoxText.SetHExpand(false)
-
-	supportedHTTPMethods := []string{
+	a.MethodList = []string{
 		http.MethodGet,
 		http.MethodPost,
 		http.MethodConnect,
@@ -102,20 +100,20 @@ func (a *View) createHTTPURLInput() gtk.IWidget {
 		http.MethodOptions,
 		http.MethodTrace,
 	}
-	for _, method := range supportedHTTPMethods {
-		a.MethodComboBoxText.AppendText(method)
-	}
-	a.MethodComboBoxText.SetActive(0)
+	a.MethodDropDown = gtk.NewDropDownFromStrings(a.MethodList)
+	a.MethodDropDown.SetHExpand(false)
+	a.MethodDropDown.SetSelected(0)
 
-	box.PackStart(a.MethodComboBoxText, false, false, 5)
+	box.Append(a.MethodDropDown)
 
-	a.URLTextView, _ = gtk.TextViewNew()
+	a.URLTextView = gtk.NewTextView()
 	a.URLTextView.SetHExpand(true)
 	a.URLTextView.SetTopMargin(10)
-	textBoxBuffer, _ := a.URLTextView.GetBuffer()
+
+	textBoxBuffer := a.URLTextView.Buffer()
 	textBoxBuffer.SetText("Enter URL here")
 
-	box.PackStart(a.URLTextView, true, true, 5)
+	box.Append(a.URLTextView)
 
 	return box
 }

@@ -3,16 +3,18 @@ module github.com/vin-rmdn/http3-gui-client-go
 go 1.25.0
 
 require (
-	github.com/gotk3/gotk3 v0.6.5-0.20240618185848-ff349ae13f56
+	github.com/diamondburned/gotk4/pkg v0.3.1
 	github.com/quic-go/quic-go v0.54.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
+	github.com/KarpelesLab/weak v0.1.1 // indirect
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
 	go.uber.org/mock v0.6.0 // indirect
+	go4.org/unsafe/assume-no-moving-gc v0.0.0-20231121144256-b99613f794b6 // indirect
 	golang.org/x/crypto v0.41.0 // indirect
 	golang.org/x/mod v0.27.0 // indirect
 	golang.org/x/net v0.43.0 // indirect
