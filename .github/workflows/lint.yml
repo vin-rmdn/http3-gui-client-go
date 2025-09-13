@@ -10,4 +10,5 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: stable
+      - run: go mod tidy
       - uses: golangci/golangci-lint-action@v8
