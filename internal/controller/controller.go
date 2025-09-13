@@ -6,15 +6,15 @@ import (
 	"net/http"
 
 	"github.com/quic-go/quic-go/http3"
-	"github.com/vin-rmdn/http3-gui-client-go/internal/application"
+	"github.com/vin-rmdn/http3-gui-client-go/internal/view"
 )
 
 type controller struct {
 	httpClient *http.Client
-	view       *application.View
+	view       *view.View
 }
 
-func New(httpClient *http.Client, view *application.View) controller {
+func New(httpClient *http.Client, view *view.View) controller {
 	c := controller{
 		httpClient: httpClient,
 		view:       view,
