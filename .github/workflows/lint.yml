@@ -7,4 +7,5 @@ jobs:
     runs-on: ubuntu-latest
     container: golangci/golangci-lint:latest
     steps:
+      - uses: actions/checkout@v5
       - run: golangci-lint run
