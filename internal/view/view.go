@@ -16,6 +16,8 @@ const signalDestroy = "destroy"
 type View struct {
 	*gtk.Application
 
+	Logger *slog.Logger
+
 	Window              *gtk.ApplicationWindow
 	URLTextView         *gtk.TextView
 	MethodDropDown      *gtk.DropDown
@@ -70,7 +72,7 @@ func (a *View) SetOnSendRequestFunction(callback func(*http.Request)) {
 
 		selectedIndex := a.MethodDropDown.Selected()
 		if selectedIndex == gtk.InvalidListPosition {
-			slog.Warn("dropdown does not have active item selected")
+			a.Logger.Warn("dropdown does not have active item selected")
 			return
 		}
 
@@ -85,7 +87,7 @@ func (a *View) SetOnSendRequestFunction(callback func(*http.Request)) {
 			body = io.NopCloser(strings.NewReader(bodyString))
 		}
 
-		slog.Debug(
+		a.Logger.Debug(
 			"ready to trigger http request",
 			slog.String("url", url),
 			slog.String("method", method),
@@ -94,7 +96,7 @@ func (a *View) SetOnSendRequestFunction(callback func(*http.Request)) {
 
 		request, err := http.NewRequestWithContext(context.Background(), method, url, body)
 		if err != nil {
-			slog.Error("cannot create request", slog.String("error", err.Error()))
+			a.Logger.Error("cannot create request", slog.String("error", err.Error()))
 			return
 		}
 

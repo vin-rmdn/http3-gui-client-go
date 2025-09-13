@@ -62,6 +62,7 @@ func main() {
 
 	app := &view.View{
 		Application: gtkApp,
+		Logger:      log,
 	}
 	httpClient := &http.Client{
 		Transport: &http3.Transport{
