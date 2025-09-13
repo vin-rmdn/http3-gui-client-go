@@ -23,9 +23,7 @@ type View struct {
 }
 
 func (a *View) Activate(conf *config.Configuration) error {
-	window := gtk.NewApplicationWindow(a.Application)
-
-	a.Window = window
+	a.Window = gtk.NewApplicationWindow(a.Application)
 	a.Window.SetTitle(conf.Window.Title)
 	a.Window.SetDefaultSize(800, 600)
 
@@ -33,28 +31,18 @@ func (a *View) Activate(conf *config.Configuration) error {
 		a.Application.Quit()
 	})
 
-	verticalGrid := gtk.NewGrid()
-	verticalGrid.SetOrientation(gtk.OrientationVertical)
-	verticalGrid.SetRowSpacing(10)
-
-	verticalGrid.SetMarginStart(10)
-	verticalGrid.SetMarginEnd(10)
-	verticalGrid.SetMarginTop(10)
-	verticalGrid.SetMarginBottom(10)
-
-	verticalGrid.Attach(a.createHTTPURLInput(), 0, 0, 1, 1)
-
 	a.SendRequestButton = gtk.NewButtonWithLabel("Send request")
 	a.SendRequestButton.SetHExpand(false)
 
-	verticalGrid.Attach(a.SendRequestButton, 0, 1, 1, 1)
+	httpUIGrid := a.addAllToVerticalGrid(
+		a.createHTTPURLInput(),
 
-	responseGrid := a.createHTTPResponseView()
-	verticalGrid.Attach(responseGrid, 0, 2, 1, 1)
+		a.SendRequestButton,
+		a.createHTTPResponseView(),
+	)
 
-	window.SetChild(verticalGrid)
-
-	window.SetVisible(true)
+	a.Window.SetChild(httpUIGrid)
+	a.Window.SetVisible(true)
 
 	return nil
 }
@@ -153,4 +141,27 @@ func (a *View) createHTTPResponseView() gtk.Widgetter {
 
 func (a *View) SetDestroyFunction(callback func()) {
 	a.Window.Connect(signalDestroy, callback)
+}
+
+func (a *View) setupHTTPUserInterfaceGrid() *gtk.Grid {
+	verticalGrid := gtk.NewGrid()
+	verticalGrid.SetOrientation(gtk.OrientationVertical)
+	verticalGrid.SetRowSpacing(10)
+
+	verticalGrid.SetMarginStart(10)
+	verticalGrid.SetMarginEnd(10)
+	verticalGrid.SetMarginTop(10)
+	verticalGrid.SetMarginBottom(10)
+
+	return verticalGrid
+}
+
+func (a *View) addAllToVerticalGrid(widgets ...gtk.Widgetter) *gtk.Grid {
+	grid := a.setupHTTPUserInterfaceGrid()
+
+	for i, widget := range widgets {
+		grid.Attach(widget, 0, i, 1, 1)
+	}
+
+	return grid
 }
