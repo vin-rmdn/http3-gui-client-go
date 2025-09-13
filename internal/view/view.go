@@ -2,8 +2,10 @@ package view
 
 import (
 	"context"
+	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	gtk "github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/vin-rmdn/http3-gui-client-go/internal/config"
@@ -14,12 +16,13 @@ const signalDestroy = "destroy"
 type View struct {
 	*gtk.Application
 
-	Window            *gtk.ApplicationWindow
-	URLTextView       *gtk.TextView
-	MethodDropDown    *gtk.DropDown
-	MethodList        []string
-	SendRequestButton *gtk.Button
-	ResponseTextView  *gtk.TextView
+	Window              *gtk.ApplicationWindow
+	URLTextView         *gtk.TextView
+	MethodDropDown      *gtk.DropDown
+	MethodList          []string
+	RequestBodyTextView *gtk.TextView
+	SendRequestButton   *gtk.Button
+	ResponseTextView    *gtk.TextView
 }
 
 func (a *View) Activate(conf *config.Configuration) error {
@@ -31,12 +34,22 @@ func (a *View) Activate(conf *config.Configuration) error {
 		a.Application.Quit()
 	})
 
+	a.RequestBodyTextView = gtk.NewTextView()
+	a.RequestBodyTextView.SetHExpand(true)
+	a.RequestBodyTextView.SetSizeRequest(-1, 100)
+
 	a.SendRequestButton = gtk.NewButtonWithLabel("Send request")
 	a.SendRequestButton.SetHExpand(false)
 
 	httpUIGrid := a.addAllToVerticalGrid(
 		a.createHTTPURLInput(),
+		func() gtk.Widgetter {
+			requestBodyLabel := gtk.NewLabel("Request body:")
+			requestBodyLabel.SetHAlign(gtk.AlignStart)
 
+			return requestBodyLabel
+		}(),
+		a.RequestBodyTextView,
 		a.SendRequestButton,
 		a.createHTTPResponseView(),
 	)
@@ -51,9 +64,9 @@ func (a *View) SetOnSendRequestFunction(callback func(*http.Request)) {
 	const signalClicked = "clicked"
 	a.SendRequestButton.Connect(signalClicked, func() {
 		urlBuffer := a.URLTextView.Buffer()
-		start, end := urlBuffer.Bounds()
+		urlStart, urlEnd := urlBuffer.Bounds()
 
-		url := urlBuffer.Text(start, end, false)
+		url := urlBuffer.Text(urlStart, urlEnd, false)
 
 		selectedIndex := a.MethodDropDown.Selected()
 		if selectedIndex == gtk.InvalidListPosition {
@@ -63,14 +76,23 @@ func (a *View) SetOnSendRequestFunction(callback func(*http.Request)) {
 
 		method := a.MethodList[selectedIndex]
 
+		bodyBuffer := a.RequestBodyTextView.Buffer()
+		bodyStart, bodyEnd := bodyBuffer.Bounds()
+		bodyString := bodyBuffer.Text(bodyStart, bodyEnd, true)
+
+		var body io.ReadCloser = http.NoBody
+		if len(bodyString) != 0 {
+			body = io.NopCloser(strings.NewReader(bodyString))
+		}
+
 		slog.Debug(
 			"ready to trigger http request",
 			slog.String("url", url),
 			slog.String("method", method),
+			slog.String("body", bodyString),
 		)
 
-		// TODO: support request body
-		request, err := http.NewRequestWithContext(context.Background(), method, url, http.NoBody)
+		request, err := http.NewRequestWithContext(context.Background(), method, url, body)
 		if err != nil {
 			slog.Error("cannot create request", slog.String("error", err.Error()))
 			return

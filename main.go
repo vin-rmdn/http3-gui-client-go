@@ -13,10 +13,10 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
-	"github.com/vin-rmdn/http3-gui-client-go/internal/view"
 	"github.com/vin-rmdn/http3-gui-client-go/internal/config"
 	"github.com/vin-rmdn/http3-gui-client-go/internal/controller"
 	"github.com/vin-rmdn/http3-gui-client-go/internal/logger"
+	"github.com/vin-rmdn/http3-gui-client-go/internal/view"
 )
 
 func main() {
