@@ -5,8 +5,9 @@ on: [push]
 jobs:
   lint:
     runs-on: ubuntu-latest
-    container: golangci/golangci-lint:latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-go@v6
-      - run: golangci-lint run
+        with:
+          go-version: stable
+      - uses: golangci/golangci-lint-action@v8
