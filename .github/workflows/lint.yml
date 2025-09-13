@@ -1,0 +1,10 @@
+name: Go
+
+on: [push]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container: golangci/golangci-lint:latest
+    steps:
+      - run: golangci-lint run
