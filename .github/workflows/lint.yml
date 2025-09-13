@@ -8,4 +8,5 @@ jobs:
     container: golangci/golangci-lint:latest
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
       - run: golangci-lint run
