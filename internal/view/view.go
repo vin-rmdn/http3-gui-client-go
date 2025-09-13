@@ -22,7 +22,6 @@ type View struct {
 }
 
 func (a *View) Activate(conf *config.Configuration) error {
-	// window, err := gtk.ApplicationWindowNew(a.Application)
 	window := gtk.NewApplicationWindow(a.Application)
 
 	a.Window = window
@@ -35,8 +34,12 @@ func (a *View) Activate(conf *config.Configuration) error {
 
 	verticalGrid := gtk.NewGrid()
 	verticalGrid.SetOrientation(gtk.OrientationVertical)
-	// verticalGrid.SetBorderWidth(10)
 	verticalGrid.SetRowSpacing(10)
+
+	verticalGrid.SetMarginStart(10)
+	verticalGrid.SetMarginEnd(10)
+	verticalGrid.SetMarginTop(10)
+	verticalGrid.SetMarginBottom(10)
 
 	verticalGrid.Attach(a.createHTTPURLInput(), 0, 0, 1, 1)
 
@@ -47,7 +50,6 @@ func (a *View) Activate(conf *config.Configuration) error {
 
 	window.SetChild(verticalGrid)
 
-	// window.ShowAll()
 	window.SetVisible(true)
 
 	return nil
@@ -88,6 +90,7 @@ func (a *View) SetOnSendRequestFunction(callback func(*http.Request)) {
 
 func (a *View) createHTTPURLInput() gtk.Widgetter {
 	box := gtk.NewBox(gtk.OrientationHorizontal, 0)
+	box.SetSpacing(10)
 
 	a.MethodList = []string{
 		http.MethodGet,
@@ -109,6 +112,7 @@ func (a *View) createHTTPURLInput() gtk.Widgetter {
 	a.URLTextView = gtk.NewTextView()
 	a.URLTextView.SetHExpand(true)
 	a.URLTextView.SetTopMargin(10)
+	// TODO: make all text views rounded
 
 	textBoxBuffer := a.URLTextView.Buffer()
 	textBoxBuffer.SetText("Enter URL here")
