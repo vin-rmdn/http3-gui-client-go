@@ -50,7 +50,7 @@ func (c controller) handleSendRequestButton(request *http.Request) {
 		slog.String("proto_version", response.Proto),
 	)
 
-	// TODO: draw response to view
+	c.view.SetResponseBody(string(responseBody))
 }
 
 func (c controller) Destroy() {

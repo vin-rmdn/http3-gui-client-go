@@ -19,6 +19,7 @@ type View struct {
 	MethodDropDown    *gtk.DropDown
 	MethodList        []string
 	SendRequestButton *gtk.Button
+	ResponseTextView  *gtk.TextView
 }
 
 func (a *View) Activate(conf *config.Configuration) error {
@@ -47,6 +48,9 @@ func (a *View) Activate(conf *config.Configuration) error {
 	a.SendRequestButton.SetHExpand(false)
 
 	verticalGrid.Attach(a.SendRequestButton, 0, 1, 1, 1)
+
+	responseGrid := a.createHTTPResponseView()
+	verticalGrid.Attach(responseGrid, 0, 2, 1, 1)
 
 	window.SetChild(verticalGrid)
 
@@ -120,6 +124,31 @@ func (a *View) createHTTPURLInput() gtk.Widgetter {
 	box.Append(a.URLTextView)
 
 	return box
+}
+
+func (a *View) createHTTPResponseView() gtk.Widgetter {
+	responseGrid := gtk.NewGrid()
+	responseGrid.SetOrientation(gtk.OrientationVertical)
+	responseGrid.SetRowSpacing(10)
+	responseGrid.SetSizeRequest(-1, -1)
+	responseGrid.SetHExpand(true)
+
+	responseLabel := gtk.NewLabel("Response")
+	responseLabel.SetHAlign(gtk.AlignStart)
+	responseGrid.Attach(responseLabel, 0, 0, 1, 1)
+
+	a.ResponseTextView = gtk.NewTextView()
+	a.ResponseTextView.SetSizeRequest(-1, 100)
+	a.ResponseTextView.SetEditable(false)
+	a.ResponseTextView.SetHExpand(true)
+
+	responseScrolledWindow := gtk.NewScrolledWindow()
+	responseScrolledWindow.SetChild(a.ResponseTextView)
+	responseScrolledWindow.SetPropagateNaturalHeight(true)
+
+	responseGrid.Attach(responseScrolledWindow, 0, 1, 1, 1)
+
+	return responseGrid
 }
 
 func (a *View) SetDestroyFunction(callback func()) {
